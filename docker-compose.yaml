@@ -1,0 +1,23 @@
+services:
+  server:
+    image: bitnami/laravel
+    volumes:
+      - ./backend:/app
+    environment:
+      - LARAVEL_DATABASE_HOST=database
+      - LARAVEL_DATABASE_NAME=gallery-desktop-app
+      - LARAVEL_DATABASE_USER=root
+      - LARAVEL_DATABASE_PASSWORD=1234
+      - LARAVEL_DATABASE_PORT_NUMBER=3306
+    restart: always
+    ports:
+      - 8000:8000
+    command: >
+      sh -c "php artisan migrate --force &&
+             /opt/bitnami/scripts/laravel/run.sh"
+
+  database:
+    image: mysql:8.0
+    environment:
+      - MYSQL_ROOT_PASSWORD=1234
+      - MYSQL_DATABASE=gallery-desktop-app
