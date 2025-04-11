@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import Login from "./pages/Login/Login.jsx";
 import Register from "./pages/Register/Register.jsx";
 import Home from "./pages/Home/Home.jsx";
-import "./App.css"; // Global styles if needed
+import "./App.css";
 
 const App = () => {
   const [user, setUser] = useState(null);
