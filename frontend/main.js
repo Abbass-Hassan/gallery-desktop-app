@@ -2,7 +2,6 @@ import { app, BrowserWindow } from "electron";
 import { fileURLToPath } from "url";
 import path from "path";
 
-// Create __dirname equivalent for ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -11,10 +10,9 @@ function createWindow() {
     width: 800,
     height: 600,
     webPreferences: {
-      // For security, consider using a preload script instead of enabling nodeIntegration directly
       nodeIntegration: true,
       contextIsolation: false,
-      preload: path.join(__dirname, "preload.js"), // adjust if needed
+      preload: path.join(__dirname, "preload.js"),
     },
   });
   console.log(process.env.NODE_ENV);
