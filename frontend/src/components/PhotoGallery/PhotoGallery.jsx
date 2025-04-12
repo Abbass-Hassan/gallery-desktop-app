@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import AddPhotoModal from "../AddPhotoModal/AddPhotoModal";
+import PhotoItem from "../PhotoItem/PhotoItem"; // Import the new component
 import "./PhotoGallery.css";
 
 const PhotoGallery = () => {
@@ -21,7 +22,7 @@ const PhotoGallery = () => {
     }
   };
 
-  // Fetch images when the component mounts
+  // Fetch images when the component mounts.
   useEffect(() => {
     fetchUserImages();
   }, []);
@@ -32,16 +33,12 @@ const PhotoGallery = () => {
     const reader = new FileReader();
 
     reader.onload = async (e) => {
-      // e.target.result is the ArrayBuffer of the file.
       const arrayBuffer = e.target.result;
-      // Convert the ArrayBuffer into a Uint8Array.
       const typedArray = new Uint8Array(arrayBuffer);
 
       try {
-        // Call the exposed API with the file data and fileName.
         const newPath = await window.electronAPI.saveFile(typedArray, fileName);
         const fileUrl = "file://" + newPath;
-        // Update state to include the newly saved image.
         setPhotos((prevPhotos) => [
           ...prevPhotos,
           { id: Date.now(), url: fileUrl },
@@ -60,6 +57,25 @@ const PhotoGallery = () => {
     reader.readAsArrayBuffer(file);
   };
 
+  // Handler for deleting a photo: delete from disk then update state.
+  const handleDelete = async (photo) => {
+    // Strip the "file://" prefix to get the raw file system path.
+    const filePath = photo.url.replace(/^file:\/\//, "");
+    try {
+      await window.electronAPI.deleteFile(filePath);
+      // Remove photo from state if deletion was successful.
+      setPhotos((prevPhotos) => prevPhotos.filter((p) => p.id !== photo.id));
+    } catch (error) {
+      console.error("Error deleting photo:", error);
+    }
+  };
+
+  // Sample handler for editing a photo.
+  const handleEdit = (photo) => {
+    console.log("Edit photo:", photo);
+    // Implement edit functionality here.
+  };
+
   return (
     <div className="gallery-container">
       <div className="gallery-header">
@@ -72,9 +88,12 @@ const PhotoGallery = () => {
       <div className="photos-grid">
         {photos.length > 0 ? (
           photos.map((photo) => (
-            <div className="photo-item" key={photo.id}>
-              <img src={photo.url} alt="Gallery item" />
-            </div>
+            <PhotoItem
+              key={photo.id}
+              photo={photo}
+              onDelete={handleDelete}
+              onEdit={handleEdit}
+            />
           ))
         ) : (
           <div className="empty-gallery">

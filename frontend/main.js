@@ -9,8 +9,8 @@ const __dirname = path.dirname(__filename);
 
 function createWindow() {
   const mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 1512,
+    height: 982,
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
       nodeIntegration: false,
@@ -72,6 +72,20 @@ ipcMain.handle("get-user-images", async () => {
   const filePaths = fileNames.map((file) => path.join(destinationDir, file));
 
   return filePaths;
+});
+
+// New IPC handler to delete a file from disk.
+ipcMain.handle("delete-file", async (event, filePath) => {
+  return new Promise((resolve, reject) => {
+    fs.unlink(filePath, (err) => {
+      if (err) {
+        console.error("Error deleting file:", err);
+        reject(err);
+      } else {
+        resolve("File deleted successfully");
+      }
+    });
+  });
 });
 
 app.whenReady().then(createWindow);
