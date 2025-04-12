@@ -7,7 +7,6 @@ import "./Home.css";
 const Home = ({ user }) => {
   const navigate = useNavigate();
 
-  // Redirect to login if not authenticated
   useEffect(() => {
     if (!localStorage.getItem("authToken") && !user) {
       navigate("/");
