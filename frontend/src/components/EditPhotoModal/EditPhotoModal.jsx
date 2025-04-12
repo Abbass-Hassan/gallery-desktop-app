@@ -37,7 +37,7 @@ async function rotateImage(dataUrl, angle) {
   const img = await createImage(dataUrl);
   const radians = (angle * Math.PI) / 180;
   let newWidth, newHeight;
-  // Swap dimensions if angle is 90 or 270.
+  // Swap dimensions if angle is 90° or 270°.
   if (angle % 180 !== 0) {
     newWidth = img.height;
     newHeight = img.width;
@@ -168,12 +168,12 @@ const EditPhotoModal = ({ photo, onSave, onCancel }) => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
     ctx.save();
-    // Increase font size and adjust the style for a larger watermark.
-    ctx.font = "80px sans-serif"; // Increased from 30px to 40px
-    ctx.fillStyle = "rgba(255, 255, 255, 0.8)"; // 80% opaque white
+    // Increase font size and use bold text for a more prominent watermark.
+    ctx.font = "80px sans-serif";
+    ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
     ctx.textBaseline = "bottom";
     ctx.textAlign = "right";
-    const padding = 20; // Increased padding for a bit more spacing
+    const padding = 20;
     // Draw watermark text at bottom-right.
     ctx.fillText(
       watermarkText,
@@ -181,10 +181,8 @@ const EditPhotoModal = ({ photo, onSave, onCancel }) => {
       canvas.height - padding
     );
     ctx.restore();
-    // Update currentImage with the new watermarked image.
     const watermarkedDataUrl = canvas.toDataURL("image/jpeg");
     setCurrentImage(watermarkedDataUrl);
-    // Exit watermark mode.
     setIsWatermarking(false);
     setWatermarkText("");
   };
@@ -192,7 +190,12 @@ const EditPhotoModal = ({ photo, onSave, onCancel }) => {
   return (
     <div className="edit-modal-overlay">
       <div className="edit-modal-content">
-        <h3>Edit Photo</h3>
+        <div className="edit-modal-header">
+          <h2 className="edit-modal-title">Edit Photo</h2>
+          <button className="close-button" onClick={onCancel}>
+            ×
+          </button>
+        </div>
         <div className="edit-image-container">
           {/* Always render the canvas */}
           <canvas ref={canvasRef} className="edit-canvas" />
@@ -210,29 +213,48 @@ const EditPhotoModal = ({ photo, onSave, onCancel }) => {
           )}
         </div>
         <div className="edit-controls">
-          {/* Crop Controls */}
+          {/* Crop controls */}
           {!isCropping ? (
-            <button onClick={() => setIsCropping(true)}>Crop</button>
+            <button
+              className="control-button"
+              onClick={() => setIsCropping(true)}
+            >
+              Crop
+            </button>
           ) : (
-            <button onClick={applyCrop}>Apply Crop</button>
+            <button className="control-button" onClick={applyCrop}>
+              Apply Crop
+            </button>
           )}
           {/* Rotate */}
-          <button onClick={handleRotate}>Rotate</button>
+          <button className="control-button" onClick={handleRotate}>
+            Rotate
+          </button>
           {/* Black & White */}
-          <button onClick={handleBW}>B&W</button>
+          <button className="control-button" onClick={handleBW}>
+            B&W
+          </button>
           {/* Watermark */}
           {!isWatermarking ? (
-            <button onClick={() => setIsWatermarking(true)}>Watermark</button>
+            <button
+              className="control-button"
+              onClick={() => setIsWatermarking(true)}
+            >
+              Watermark
+            </button>
           ) : (
-            <>
+            <div className="watermark-actions">
               <input
                 type="text"
                 placeholder="Enter watermark text"
                 value={watermarkText}
                 onChange={(e) => setWatermarkText(e.target.value)}
               />
-              <button onClick={applyWatermark}>Apply Watermark</button>
+              <button className="apply-watermark-btn" onClick={applyWatermark}>
+                Apply Watermark
+              </button>
               <button
+                className="cancel-watermark-btn"
                 onClick={() => {
                   setIsWatermarking(false);
                   setWatermarkText("");
@@ -240,12 +262,15 @@ const EditPhotoModal = ({ photo, onSave, onCancel }) => {
               >
                 Cancel Watermark
               </button>
-            </>
+            </div>
           )}
         </div>
         <div className="edit-actions">
-          <button onClick={onCancel}>Cancel</button>
+          <button className="cancel-button" onClick={onCancel}>
+            Cancel
+          </button>
           <button
+            className="apply-button"
             onClick={() => {
               const canvas = canvasRef.current;
               const editedDataUrl = canvas.toDataURL("image/jpeg");
