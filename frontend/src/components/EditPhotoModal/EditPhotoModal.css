@@ -25,10 +25,9 @@
   text-align: center;
   margin: 0 auto;
   width: 100%;
-  height: 400px; /* Fixed height for container */
+  height: 400px; /* Fixed container height */
 }
 
-/* The canvas is always rendered; it takes the full container size */
 .edit-canvas {
   border: 1px solid #ddd;
   width: 100%;
@@ -40,7 +39,6 @@
   z-index: 1;
 }
 
-/* The cropper overlays the canvas during cropping mode */
 .cropper-container {
   position: absolute;
   top: 0;
