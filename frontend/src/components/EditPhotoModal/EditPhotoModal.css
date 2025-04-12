@@ -1,0 +1,74 @@
+.edit-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.edit-modal-content {
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  max-width: 90%;
+  max-height: 90%;
+  overflow-y: auto;
+}
+
+.edit-image-container {
+  position: relative;
+  text-align: center;
+  margin: 0 auto;
+  width: 100%;
+  height: 400px; /* Fixed height for container */
+}
+
+/* The canvas is always rendered; it takes the full container size */
+.edit-canvas {
+  border: 1px solid #ddd;
+  width: 100%;
+  height: 100%;
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+}
+
+/* The cropper overlays the canvas during cropping mode */
+.cropper-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  background: #333;
+}
+
+.edit-controls {
+  margin-top: 10px;
+  text-align: center;
+}
+
+.edit-controls button {
+  margin: 0 5px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.edit-actions {
+  margin-top: 20px;
+  text-align: right;
+}
+
+.edit-actions button {
+  margin-left: 10px;
+  padding: 8px 15px;
+  cursor: pointer;
+}

@@ -1,20 +1,22 @@
 import React, { useEffect, useState } from "react";
 import AddPhotoModal from "../AddPhotoModal/AddPhotoModal";
-import PhotoItem from "../PhotoItem/PhotoItem"; // Import the new component
+import PhotoItem from "../PhotoItem/PhotoItem";
+import EditPhotoModal from "../EditPhotoModal/EditPhotoModal";
 import "./PhotoGallery.css";
 
 const PhotoGallery = () => {
   const [photos, setPhotos] = useState([]);
   const [showModal, setShowModal] = useState(false);
+  const [editingPhoto, setEditingPhoto] = useState(null); // Holds the photo being edited
 
   // Fetch images stored on disk from the local folder on the Desktop.
   const fetchUserImages = async () => {
     try {
       const imagePaths = await window.electronAPI.getUserImages();
-      // Convert absolute paths to file:// URLs
+      // Append a cache-buster query parameter to force reload of updated images.
       const images = imagePaths.map((imgPath, index) => ({
         id: Date.now() + index,
-        url: "file://" + imgPath,
+        url: "file://" + imgPath + "?t=" + new Date().getTime(),
       }));
       setPhotos(images);
     } catch (error) {
@@ -27,7 +29,7 @@ const PhotoGallery = () => {
     fetchUserImages();
   }, []);
 
-  // This function is called when a file is selected from the Add Photo modal.
+  // Called when a file is selected from the Add Photo modal.
   const handleFileSelected = async (file) => {
     const fileName = file.name;
     const reader = new FileReader();
@@ -37,12 +39,9 @@ const PhotoGallery = () => {
       const typedArray = new Uint8Array(arrayBuffer);
 
       try {
-        const newPath = await window.electronAPI.saveFile(typedArray, fileName);
-        const fileUrl = "file://" + newPath;
-        setPhotos((prevPhotos) => [
-          ...prevPhotos,
-          { id: Date.now(), url: fileUrl },
-        ]);
+        await window.electronAPI.saveFile(typedArray, fileName);
+        // Refresh photo list so that the new image is loaded with a cache buster.
+        await fetchUserImages();
       } catch (error) {
         console.error("Error saving file:", error);
       }
@@ -57,23 +56,59 @@ const PhotoGallery = () => {
     reader.readAsArrayBuffer(file);
   };
 
-  // Handler for deleting a photo: delete from disk then update state.
+  // Handler for deleting a photo:
   const handleDelete = async (photo) => {
-    // Strip the "file://" prefix to get the raw file system path.
-    const filePath = photo.url.replace(/^file:\/\//, "");
     try {
-      await window.electronAPI.deleteFile(filePath);
-      // Remove photo from state if deletion was successful.
-      setPhotos((prevPhotos) => prevPhotos.filter((p) => p.id !== photo.id));
+      // Remove the "file://" prefix and any query parameter.
+      const oldPath = photo.url.replace("file://", "").split("?")[0];
+      // Delete the file from disk.
+      await window.electronAPI.deleteFile(oldPath);
+      // Re-fetch the photos to update both the UI and local state.
+      await fetchUserImages();
     } catch (error) {
       console.error("Error deleting photo:", error);
     }
   };
 
-  // Sample handler for editing a photo.
+  // Handler for editing a photo.
   const handleEdit = (photo) => {
-    console.log("Edit photo:", photo);
-    // Implement edit functionality here.
+    setEditingPhoto(photo);
+  };
+
+  // Overwrite the original file with the edited image and refresh the gallery.
+  const handleSaveEdited = async (editedDataUrl) => {
+    if (!editingPhoto) return;
+
+    try {
+      // Convert the edited data URL into a typed array.
+      const base64Data = editedDataUrl.split(",")[1];
+      const binaryStr = atob(base64Data);
+      const len = binaryStr.length;
+      const bytes = new Uint8Array(len);
+      for (let i = 0; i < len; i++) {
+        bytes[i] = binaryStr.charCodeAt(i);
+      }
+
+      // Derive the original file path by stripping "file://" and any cache parameters.
+      const oldPath = editingPhoto.url.replace("file://", "").split("?")[0];
+      const fileName = oldPath.substring(oldPath.lastIndexOf("/") + 1);
+
+      // Delete the old file.
+      await window.electronAPI.deleteFile(oldPath);
+      // Save the edited image with the same file name.
+      await window.electronAPI.saveFile(bytes, fileName);
+      // Re-fetch the photos to update the gallery.
+      await fetchUserImages();
+      // Close the edit modal.
+      setEditingPhoto(null);
+    } catch (error) {
+      console.error("Error saving edited photo:", error);
+    }
+  };
+
+  // Cancel editing.
+  const handleCancelEditing = () => {
+    setEditingPhoto(null);
   };
 
   return (
@@ -105,6 +140,13 @@ const PhotoGallery = () => {
         <AddPhotoModal
           onClose={() => setShowModal(false)}
           onFileSelected={handleFileSelected}
+        />
+      )}
+      {editingPhoto && (
+        <EditPhotoModal
+          photo={editingPhoto}
+          onSave={handleSaveEdited}
+          onCancel={handleCancelEditing}
         />
       )}
     </div>
