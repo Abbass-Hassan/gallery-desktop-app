@@ -37,7 +37,7 @@ async function rotateImage(dataUrl, angle) {
   const img = await createImage(dataUrl);
   const radians = (angle * Math.PI) / 180;
   let newWidth, newHeight;
-  // Swap dimensions for 90° or 270° rotations.
+  // Swap dimensions if angle is 90 or 270.
   if (angle % 180 !== 0) {
     newWidth = img.height;
     newHeight = img.width;
@@ -59,11 +59,13 @@ const EditPhotoModal = ({ photo, onSave, onCancel }) => {
   const canvasRef = useRef(null);
   const [currentImage, setCurrentImage] = useState(null);
   const [isCropping, setIsCropping] = useState(false);
+  const [isWatermarking, setIsWatermarking] = useState(false);
+  const [watermarkText, setWatermarkText] = useState("");
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
   const [rotation, setRotation] = useState(0); // Rotation angle in degrees
 
-  // When the modal opens, load the image and draw it on the canvas.
+  // Load the original image when the modal opens.
   useEffect(() => {
     const img = new Image();
     img.src = photo.url;
@@ -75,16 +77,16 @@ const EditPhotoModal = ({ photo, onSave, onCancel }) => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(img, 0, 0);
       setCurrentImage(photo.url);
-      setRotation(0); // Reset rotation state.
+      setRotation(0);
     };
   }, [photo.url]);
 
-  // Called whenever the user finishes moving or resizing the crop area.
+  // Capture crop area details.
   const onCropComplete = (croppedArea, croppedAreaPixels) => {
     setCroppedAreaPixels(croppedAreaPixels);
   };
 
-  // Apply the crop and update the canvas.
+  // Apply cropping.
   const applyCrop = async () => {
     try {
       const croppedImageDataUrl = await getCroppedImg(
@@ -102,14 +104,14 @@ const EditPhotoModal = ({ photo, onSave, onCancel }) => {
         ctx.drawImage(img, 0, 0);
         setIsCropping(false);
         setCurrentImage(croppedImageDataUrl);
-        setRotation(0); // Reset rotation after crop.
+        setRotation(0);
       };
     } catch (error) {
       console.error("Error applying crop:", error);
     }
   };
 
-  // Rotate the current image by 90° increments.
+  // Rotate image by 90° increments.
   const handleRotate = async () => {
     try {
       const newRotation = (rotation + 90) % 360;
@@ -131,22 +133,18 @@ const EditPhotoModal = ({ photo, onSave, onCancel }) => {
     }
   };
 
-  // Convert the image on the canvas to Black & White.
+  // Convert the image to Black & White.
   const handleBW = async () => {
     try {
       const canvas = canvasRef.current;
       const ctx = canvas.getContext("2d");
-      // Create an offscreen canvas with the same dimensions.
       const offscreen = document.createElement("canvas");
       offscreen.width = canvas.width;
       offscreen.height = canvas.height;
       const offCtx = offscreen.getContext("2d");
-      // Apply the grayscale filter.
       offCtx.filter = "grayscale(100%)";
       offCtx.drawImage(canvas, 0, 0, canvas.width, canvas.height);
-      // Get the new data URL.
       const bwDataUrl = offscreen.toDataURL("image/jpeg");
-      // Update the main canvas.
       const img = new Image();
       img.src = bwDataUrl;
       img.onload = () => {
@@ -161,6 +159,36 @@ const EditPhotoModal = ({ photo, onSave, onCancel }) => {
     }
   };
 
+  // Apply watermark to the current image.
+  const applyWatermark = () => {
+    if (!watermarkText) {
+      alert("Please enter some text for the watermark.");
+      return;
+    }
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    ctx.save();
+    // Increase font size and adjust the style for a larger watermark.
+    ctx.font = "80px sans-serif"; // Increased from 30px to 40px
+    ctx.fillStyle = "rgba(255, 255, 255, 0.8)"; // 80% opaque white
+    ctx.textBaseline = "bottom";
+    ctx.textAlign = "right";
+    const padding = 20; // Increased padding for a bit more spacing
+    // Draw watermark text at bottom-right.
+    ctx.fillText(
+      watermarkText,
+      canvas.width - padding,
+      canvas.height - padding
+    );
+    ctx.restore();
+    // Update currentImage with the new watermarked image.
+    const watermarkedDataUrl = canvas.toDataURL("image/jpeg");
+    setCurrentImage(watermarkedDataUrl);
+    // Exit watermark mode.
+    setIsWatermarking(false);
+    setWatermarkText("");
+  };
+
   return (
     <div className="edit-modal-overlay">
       <div className="edit-modal-content">
@@ -168,7 +196,7 @@ const EditPhotoModal = ({ photo, onSave, onCancel }) => {
         <div className="edit-image-container">
           {/* Always render the canvas */}
           <canvas ref={canvasRef} className="edit-canvas" />
-          {/* Overlay cropper if in cropping mode */}
+          {/* Overlay Cropper if in cropping mode */}
           {isCropping && currentImage && (
             <div className="cropper-container">
               <Cropper
@@ -176,38 +204,51 @@ const EditPhotoModal = ({ photo, onSave, onCancel }) => {
                 crop={crop}
                 onCropChange={setCrop}
                 onCropComplete={onCropComplete}
-                // No fixed aspect; free-form cropping.
+                // Free-form cropping: no aspect ratio, no zoom.
               />
             </div>
           )}
         </div>
         <div className="edit-controls">
-          {/* Toggle crop mode */}
+          {/* Crop Controls */}
           {!isCropping ? (
             <button onClick={() => setIsCropping(true)}>Crop</button>
           ) : (
             <button onClick={applyCrop}>Apply Crop</button>
           )}
-          {/* Rotate the image */}
+          {/* Rotate */}
           <button onClick={handleRotate}>Rotate</button>
-          {/* Convert to Black & White */}
+          {/* Black & White */}
           <button onClick={handleBW}>B&W</button>
-          {/* Placeholders for watermark feature */}
-          <button
-            onClick={() => {
-              /* Implement watermark later */
-            }}
-          >
-            Watermark
-          </button>
+          {/* Watermark */}
+          {!isWatermarking ? (
+            <button onClick={() => setIsWatermarking(true)}>Watermark</button>
+          ) : (
+            <>
+              <input
+                type="text"
+                placeholder="Enter watermark text"
+                value={watermarkText}
+                onChange={(e) => setWatermarkText(e.target.value)}
+              />
+              <button onClick={applyWatermark}>Apply Watermark</button>
+              <button
+                onClick={() => {
+                  setIsWatermarking(false);
+                  setWatermarkText("");
+                }}
+              >
+                Cancel Watermark
+              </button>
+            </>
+          )}
         </div>
         <div className="edit-actions">
           <button onClick={onCancel}>Cancel</button>
           <button
             onClick={() => {
-              // When finalized, retrieve the edited data from the canvas.
               const canvas = canvasRef.current;
-              const editedDataUrl = canvas.toDataURL();
+              const editedDataUrl = canvas.toDataURL("image/jpeg");
               onSave(editedDataUrl);
             }}
           >
