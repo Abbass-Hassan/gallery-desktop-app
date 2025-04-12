@@ -37,7 +37,7 @@ async function rotateImage(dataUrl, angle) {
   const img = await createImage(dataUrl);
   const radians = (angle * Math.PI) / 180;
   let newWidth, newHeight;
-  // For 90 or 270 degrees, swap width and height
+  // Swap dimensions for 90° or 270° rotations.
   if (angle % 180 !== 0) {
     newWidth = img.height;
     newHeight = img.width;
@@ -49,7 +49,6 @@ async function rotateImage(dataUrl, angle) {
   offscreenCanvas.width = newWidth;
   offscreenCanvas.height = newHeight;
   const ctx = offscreenCanvas.getContext("2d");
-  // Translate to center for rotation.
   ctx.translate(newWidth / 2, newHeight / 2);
   ctx.rotate(radians);
   ctx.drawImage(img, -img.width / 2, -img.height / 2);
@@ -64,36 +63,34 @@ const EditPhotoModal = ({ photo, onSave, onCancel }) => {
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
   const [rotation, setRotation] = useState(0); // Rotation angle in degrees
 
-  // When the modal opens, load the image and draw it to the canvas.
+  // When the modal opens, load the image and draw it on the canvas.
   useEffect(() => {
     const img = new Image();
     img.src = photo.url;
     img.onload = () => {
       const canvas = canvasRef.current;
-      // Use the image's natural dimensions.
       canvas.width = img.width;
       canvas.height = img.height;
       const ctx = canvas.getContext("2d");
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(img, 0, 0);
       setCurrentImage(photo.url);
-      setRotation(0); // reset rotation state
+      setRotation(0); // Reset rotation state.
     };
   }, [photo.url]);
 
-  // Capture crop completion details.
+  // Called whenever the user finishes moving or resizing the crop area.
   const onCropComplete = (croppedArea, croppedAreaPixels) => {
     setCroppedAreaPixels(croppedAreaPixels);
   };
 
-  // Apply the crop operation.
+  // Apply the crop and update the canvas.
   const applyCrop = async () => {
     try {
       const croppedImageDataUrl = await getCroppedImg(
         currentImage,
         croppedAreaPixels
       );
-      // Update the canvas with the cropped image.
       const canvas = canvasRef.current;
       const img = new Image();
       img.src = croppedImageDataUrl;
@@ -112,29 +109,55 @@ const EditPhotoModal = ({ photo, onSave, onCancel }) => {
     }
   };
 
-  // Rotate the image by 90° increment.
+  // Rotate the current image by 90° increments.
   const handleRotate = async () => {
     try {
       const newRotation = (rotation + 90) % 360;
-      // Rotate the current image.
       const rotatedDataUrl = await rotateImage(currentImage, 90);
-      // Update the canvas with the rotated image.
       const canvas = canvasRef.current;
       const img = new Image();
       img.src = rotatedDataUrl;
       img.onload = () => {
-        // Set canvas dimensions to match rotated image.
         canvas.width = img.width;
         canvas.height = img.height;
         const ctx = canvas.getContext("2d");
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(img, 0, 0);
-        // Update state with new image and rotation value.
         setCurrentImage(rotatedDataUrl);
         setRotation(newRotation);
       };
     } catch (error) {
       console.error("Error rotating image:", error);
+    }
+  };
+
+  // Convert the image on the canvas to Black & White.
+  const handleBW = async () => {
+    try {
+      const canvas = canvasRef.current;
+      const ctx = canvas.getContext("2d");
+      // Create an offscreen canvas with the same dimensions.
+      const offscreen = document.createElement("canvas");
+      offscreen.width = canvas.width;
+      offscreen.height = canvas.height;
+      const offCtx = offscreen.getContext("2d");
+      // Apply the grayscale filter.
+      offCtx.filter = "grayscale(100%)";
+      offCtx.drawImage(canvas, 0, 0, canvas.width, canvas.height);
+      // Get the new data URL.
+      const bwDataUrl = offscreen.toDataURL("image/jpeg");
+      // Update the main canvas.
+      const img = new Image();
+      img.src = bwDataUrl;
+      img.onload = () => {
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
+        setCurrentImage(bwDataUrl);
+      };
+    } catch (error) {
+      console.error("Error converting image to B&W:", error);
     }
   };
 
@@ -153,21 +176,23 @@ const EditPhotoModal = ({ photo, onSave, onCancel }) => {
                 crop={crop}
                 onCropChange={setCrop}
                 onCropComplete={onCropComplete}
-                // No aspect prop for free-form cropping.
+                // No fixed aspect; free-form cropping.
               />
             </div>
           )}
         </div>
         <div className="edit-controls">
-          {/* Toggle cropping mode */}
+          {/* Toggle crop mode */}
           {!isCropping ? (
             <button onClick={() => setIsCropping(true)}>Crop</button>
           ) : (
             <button onClick={applyCrop}>Apply Crop</button>
           )}
-          {/* Rotate Button */}
+          {/* Rotate the image */}
           <button onClick={handleRotate}>Rotate</button>
-          {/* Placeholder buttons for future features */}
+          {/* Convert to Black & White */}
+          <button onClick={handleBW}>B&W</button>
+          {/* Placeholders for watermark feature */}
           <button
             onClick={() => {
               /* Implement watermark later */
@@ -175,18 +200,12 @@ const EditPhotoModal = ({ photo, onSave, onCancel }) => {
           >
             Watermark
           </button>
-          <button
-            onClick={() => {
-              /* Implement B&W later */
-            }}
-          >
-            B&W
-          </button>
         </div>
         <div className="edit-actions">
           <button onClick={onCancel}>Cancel</button>
           <button
             onClick={() => {
+              // When finalized, retrieve the edited data from the canvas.
               const canvas = canvasRef.current;
               const editedDataUrl = canvas.toDataURL();
               onSave(editedDataUrl);
