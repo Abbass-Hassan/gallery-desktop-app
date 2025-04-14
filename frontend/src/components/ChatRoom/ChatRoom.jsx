@@ -69,7 +69,7 @@ const ChatRoom = ({ user }) => {
   return (
     <div className="chat-room-container">
       <div className="chat-header">
-        <h2 className="chat-room-title">Group Chat</h2>
+        <h2 className="chat-room-title">Gallery Community</h2>
       </div>
       <div className="chat-messages">
         {messages.map((msg) => {

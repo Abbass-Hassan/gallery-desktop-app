@@ -169,7 +169,7 @@
 }
 
 .apply-button {
-  background-color: #3478f6;
+  background-color: #4f46e5;
   color: #fff;
   border: none;
   border-radius: 6px;
@@ -178,5 +178,5 @@
   font-size: 0.9rem;
 }
 .apply-button:hover {
-  background-color: #2e66d0;
+  background-color: #938fdd;
 }

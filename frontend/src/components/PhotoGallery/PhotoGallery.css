@@ -23,7 +23,7 @@
 }
 
 .add-photo-button {
-  background-color: #5cb85c;
+  background-color: #6760e7;
   color: white;
   border: none;
   border-radius: 8px;
@@ -34,7 +34,7 @@
 }
 
 .add-photo-button:hover {
-  background-color: #4cae4c;
+  background-color: #9490e3;
 }
 
 .divider {
@@ -114,7 +114,7 @@
 }
 
 .add-button {
-  background-color: #5cb85c;
+  background-color: #4f46e5;
   color: white;
   border: none;
   border-radius: 6px;
