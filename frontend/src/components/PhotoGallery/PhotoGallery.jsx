@@ -7,10 +7,12 @@ import "./PhotoGallery.css";
 const PhotoGallery = () => {
   const [photos, setPhotos] = useState([]);
   const [showModal, setShowModal] = useState(false);
-  const [editingPhoto, setEditingPhoto] = useState(null); // Holds the photo being edited
+  const [editingPhoto, setEditingPhoto] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Fetch images stored on disk from the local folder on the Desktop.
   const fetchUserImages = async () => {
+    setIsLoading(true);
     try {
       const imagePaths = await window.electronAPI.getUserImages();
       // Append a cache-buster query parameter to force reload of updated images.
@@ -21,6 +23,8 @@ const PhotoGallery = () => {
       setPhotos(images);
     } catch (error) {
       console.error("Error fetching user images:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -44,12 +48,14 @@ const PhotoGallery = () => {
         await fetchUserImages();
       } catch (error) {
         console.error("Error saving file:", error);
+        alert("Failed to save the file. Please try again.");
       }
       setShowModal(false);
     };
 
     reader.onerror = (error) => {
       console.error("Error reading file:", error);
+      alert("Failed to read the file. Please try again.");
       setShowModal(false);
     };
 
@@ -67,6 +73,7 @@ const PhotoGallery = () => {
       await fetchUserImages();
     } catch (error) {
       console.error("Error deleting photo:", error);
+      alert("Failed to delete the photo. Please try again.");
     }
   };
 
@@ -103,6 +110,7 @@ const PhotoGallery = () => {
       setEditingPhoto(null);
     } catch (error) {
       console.error("Error saving edited photo:", error);
+      alert("Failed to save the edited photo. Please try again.");
     }
   };
 
@@ -120,22 +128,30 @@ const PhotoGallery = () => {
         </button>
       </div>
       <div className="divider"></div>
-      <div className="photos-grid">
-        {photos.length > 0 ? (
-          photos.map((photo) => (
-            <PhotoItem
-              key={photo.id}
-              photo={photo}
-              onDelete={handleDelete}
-              onEdit={handleEdit}
-            />
-          ))
-        ) : (
-          <div className="empty-gallery">
-            <p>No photos yet. Click "Add Photo" to get started.</p>
-          </div>
-        )}
-      </div>
+
+      {isLoading ? (
+        <div className="empty-gallery">
+          <p>Loading your photos...</p>
+        </div>
+      ) : (
+        <div className="photos-grid">
+          {photos.length > 0 ? (
+            photos.map((photo) => (
+              <PhotoItem
+                key={photo.id}
+                photo={photo}
+                onDelete={handleDelete}
+                onEdit={handleEdit}
+              />
+            ))
+          ) : (
+            <div className="empty-gallery">
+              <p>No photos yet. Click "Add Photo" to get started.</p>
+            </div>
+          )}
+        </div>
+      )}
+
       {showModal && (
         <AddPhotoModal
           onClose={() => setShowModal(false)}
