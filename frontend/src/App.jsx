@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import Login from "./pages/Login/Login.jsx";
 import Register from "./pages/Register/Register.jsx";
 import Home from "./pages/Home/Home.jsx";
+import Chat from "./pages/Chat/Chat.jsx";
 import "./App.css";
 
 const App = () => {
@@ -25,6 +26,7 @@ const App = () => {
           element={<Register onRegisterSuccess={onRegisterSuccess} />}
         />
         <Route path="/home" element={<Home user={user} />} />
+        <Route path="/chat" element={<Chat user={user} />} />
       </Routes>
     </Router>
   );

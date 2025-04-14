@@ -1,0 +1,124 @@
+/* Overall container for the chat room */
+.chat-room-container {
+  width: 100%;
+  max-width: 800px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  height: 80vh; /* Enough space for the chat area */
+  margin: 0 auto;
+  overflow: hidden;
+}
+
+/* Header area of the chat room */
+.chat-header {
+  background-color: #fafafa;
+  border-bottom: 1px solid #eee;
+  padding: 10px 20px;
+}
+
+.chat-room-title {
+  margin: 0;
+  font-size: 1.5rem;
+  color: #333;
+}
+
+/* The scrollable messages area */
+.chat-messages {
+  flex: 1;
+  padding: 15px 20px;
+  overflow-y: auto;
+  background-color: #fdfdfd;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Each chat message container */
+.chat-message {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 10px;
+  max-width: 60%;
+}
+
+.chat-username {
+  font-size: 0.85rem;
+  color: #666;
+  font-weight: 500;
+  margin-bottom: 2px;
+  margin-left: 6px;
+}
+
+/* Differentiate messages from the current user */
+.my-message {
+  align-self: flex-end;
+  max-width: 60%;
+}
+
+/* The bubble itself */
+.bubble {
+  background-color: #f1f1f1;
+  padding: 10px 15px;
+  border-radius: 15px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  position: relative;
+  word-wrap: break-word;
+}
+
+/* If it's the current user's message, use a different color */
+.my-message .bubble {
+  background-color: #b2e4f7;
+}
+
+/* The actual text inside the bubble */
+.chat-text {
+  font-size: 0.95rem;
+  color: #333;
+}
+
+/* Timestamp styling */
+.chat-timestamp {
+  display: block;
+  font-size: 0.75rem;
+  color: #999;
+  margin-top: 4px;
+  text-align: right;
+}
+
+/* Input area container */
+.chat-input-container {
+  display: flex;
+  border-top: 1px solid #eee;
+  padding: 10px 20px;
+  background-color: #fafafa;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Text input for message typing */
+.chat-input {
+  flex: 1;
+  padding: 10px;
+  font-size: 1rem;
+  border-radius: 20px;
+  border: 1px solid #ccc;
+  outline: none;
+}
+
+/* Send button */
+.chat-send-button {
+  padding: 10px 20px;
+  font-size: 1rem;
+  background-color: #3478f6;
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.chat-send-button:hover {
+  background-color: #2e66d0;
+}

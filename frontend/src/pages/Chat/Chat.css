@@ -1,0 +1,16 @@
+/* Chat Page Wrapper */
+.chat-page-wrapper {
+  display: flex;
+  flex-direction: column;
+  background-color: #f5f5f5;
+  min-height: 100vh;
+}
+
+/* The main content area under the header */
+.chat-page-content {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 20px;
+}

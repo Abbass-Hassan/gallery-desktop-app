@@ -28,7 +28,7 @@ const Header = ({ user }) => {
           <span>Your Gallery</span>
         </Link>
 
-        <Link to="/community" className="nav-link">
+        <Link to="/chat" className="nav-link">
           <Users size={20} />
           <span>Community</span>
         </Link>
