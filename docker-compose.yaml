@@ -21,3 +21,20 @@ services:
     environment:
       - MYSQL_ROOT_PASSWORD=1234
       - MYSQL_DATABASE=gallery-desktop-app
+
+  node-chat:
+    image: node:18
+    working_dir: /app
+    volumes:
+      - ./node-chat:/app
+    ports:
+      - 3001:3001
+    command: sh -c "npm install && node server.js"
+    environment:
+      - DB_HOST=database
+      - DB_USER=root
+      - DB_PASSWORD=1234
+      - DB_NAME=gallery-desktop-app
+      - DB_PORT=3306
+    depends_on:
+      - database
