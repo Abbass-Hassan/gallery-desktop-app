@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import io from "socket.io-client";
 import "./ChatRoom.css";
 
-const SOCKET_SERVER_URL = "http://35.180.10.197:3001"; // EC2 Server IP
+const SOCKET_SERVER_URL = "http://localhost:80"; // EC2 Server IP
 
 const ChatRoom = ({ user }) => {
   const [socket, setSocket] = useState(null);
@@ -13,9 +13,10 @@ const ChatRoom = ({ user }) => {
   // Initialize Socket Connection
   useEffect(() => {
     const newSocket = io(SOCKET_SERVER_URL, {
-      path: "/socket.io", // Important for Docker / Server
-      transports: ["websocket"],
-      reconnectionAttempts: 3,
+      transports: ["polling", "websocket"], // Allow both transport methods
+      reconnection: true,
+      reconnectionAttempts: 10,
+      timeout: 20000,
     });
 
     setSocket(newSocket);
