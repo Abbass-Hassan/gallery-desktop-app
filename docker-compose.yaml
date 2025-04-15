@@ -35,8 +35,15 @@ services:
       - ./node-chat:/app
     ports:
       - 80:80
-    command: sh -c "npm install && node server.js"
+    command: >
+      sh -c "
+        echo 'Waiting for database to start...' &&
+        sleep 15 &&  
+        npm install && 
+        node server.js
+      "
     environment:
+      - PORT=80
       - DB_HOST=database
       - DB_USER=root
       - DB_PASSWORD=1234
