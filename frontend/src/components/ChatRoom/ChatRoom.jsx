@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import io from "socket.io-client";
 import "./ChatRoom.css";
 
-const SOCKET_SERVER_URL = "http://35.180.10.197:3001"; // Adjust if needed
+const SOCKET_SERVER_URL = "http://35.180.10.197:3001"; // EC2 Server IP
 
 const ChatRoom = ({ user }) => {
   const [socket, setSocket] = useState(null);
@@ -10,60 +10,68 @@ const ChatRoom = ({ user }) => {
   const [input, setInput] = useState("");
   const messageEndRef = useRef(null);
 
-  // Initialize the socket connection.
+  // Initialize Socket Connection
   useEffect(() => {
     const newSocket = io(SOCKET_SERVER_URL, {
+      path: "/socket.io", // Important for Docker / Server
       transports: ["websocket"],
       reconnectionAttempts: 3,
     });
+
     setSocket(newSocket);
 
-    // Clean up on unmount.
+    // Cleanup on unmount
     return () => newSocket.close();
   }, []);
 
-  // Listen for messages.
+  // Handle Socket Events
   useEffect(() => {
-    if (socket) {
-      // When connected, receive initial messages.
-      socket.on("initialMessages", (initialMessages) => {
-        setMessages(initialMessages);
-        scrollToBottom();
-      });
+    if (!socket) return;
 
-      // Listen for new messages.
-      socket.on("newMessage", (newMessage) => {
-        setMessages((prevMessages) => [...prevMessages, newMessage]);
-        scrollToBottom();
-      });
-    }
+    socket.on("connect", () => {
+      console.log("✅ WebSocket Connected:", socket.id);
+    });
+
+    socket.on("connect_error", (err) => {
+      console.error("❌ WebSocket Connection Error:", err.message);
+    });
+
+    socket.on("disconnect", (reason) => {
+      console.warn("⚠️ WebSocket Disconnected:", reason);
+    });
+
+    socket.on("initialMessages", (initialMessages) => {
+      setMessages(initialMessages);
+      scrollToBottom();
+    });
+
+    socket.on("newMessage", (newMessage) => {
+      setMessages((prevMessages) => [...prevMessages, newMessage]);
+      scrollToBottom();
+    });
   }, [socket]);
 
-  // Scroll the messages container to the bottom.
   const scrollToBottom = () => {
     if (messageEndRef.current) {
       messageEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   };
 
-  // Handle sending a new message.
   const handleSendMessage = () => {
-    if (input.trim() !== "" && socket && user) {
-      const messageData = {
-        user_id: user.id,
-        username: user.name, // or user.username, whichever you're using
-        message: input.trim(),
-      };
-      socket.emit("sendMessage", messageData);
-      setInput("");
-    }
+    if (!input.trim() || !socket || !user) return;
+
+    const messageData = {
+      user_id: user.id,
+      username: user.name,
+      message: input.trim(),
+    };
+
+    socket.emit("sendMessage", messageData);
+    setInput("");
   };
 
-  // Handle Enter key for sending a message.
   const handleKeyPress = (e) => {
-    if (e.key === "Enter") {
-      handleSendMessage();
-    }
+    if (e.key === "Enter") handleSendMessage();
   };
 
   return (
@@ -71,6 +79,7 @@ const ChatRoom = ({ user }) => {
       <div className="chat-header">
         <h2 className="chat-room-title">Gallery Community</h2>
       </div>
+
       <div className="chat-messages">
         {messages.map((msg) => {
           const isCurrentUser = msg.user_id === user.id;
@@ -85,6 +94,7 @@ const ChatRoom = ({ user }) => {
                   <br />
                 </span>
               )}
+
               <div className="bubble">
                 <span className="chat-text">{msg.message}</span>
                 <span className="chat-timestamp">
@@ -96,6 +106,7 @@ const ChatRoom = ({ user }) => {
         })}
         <div ref={messageEndRef} />
       </div>
+
       <div className="chat-input-container">
         <input
           type="text"
