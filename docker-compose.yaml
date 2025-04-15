@@ -34,7 +34,7 @@ services:
     volumes:
       - ./node-chat:/app
     ports:
-      - 3001:3001
+      - 80:80
     command: sh -c "npm install && node server.js"
     environment:
       - DB_HOST=database
