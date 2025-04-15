@@ -27,7 +27,7 @@ app.get("/health", (req, res) => {
 
 // Start the server
 const PORT = config.port;
-server.listen(PORT, () => {
+server.listen(PORT, "0.0.0.0", () => {
   console.log(`Chat server running on port ${PORT}`);
 });
 
