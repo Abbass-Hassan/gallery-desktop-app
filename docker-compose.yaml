@@ -13,8 +13,14 @@ services:
     ports:
       - 8000:8000
     command: >
-      sh -c "php artisan migrate --force &&
-             /opt/bitnami/scripts/laravel/run.sh"
+      sh -c "
+        cd /app &&
+        composer install &&
+        chmod -R 777 storage bootstrap/cache &&
+        php artisan config:clear &&
+        php artisan migrate --force &&
+        /opt/bitnami/scripts/laravel/run.sh
+      "
 
   database:
     image: mysql:8.0

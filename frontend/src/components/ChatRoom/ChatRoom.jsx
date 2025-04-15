@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import io from "socket.io-client";
 import "./ChatRoom.css";
 
-const SOCKET_SERVER_URL = "http://localhost:3001"; // Adjust if needed
+const SOCKET_SERVER_URL = "http://35.180.10.197:3001"; // Adjust if needed
 
 const ChatRoom = ({ user }) => {
   const [socket, setSocket] = useState(null);
