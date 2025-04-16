@@ -1,11 +1,10 @@
 require("dotenv").config();
 
-// Configuration object
 const config = {
-  // Server settings
+  // Server port configuration
   port: process.env.PORT || 80,
 
-  // Database settings
+  // Database connection parameters
   database: {
     host: process.env.DB_HOST || "localhost",
     user: process.env.DB_USER || "root",
@@ -14,9 +13,8 @@ const config = {
     port: process.env.DB_PORT || 3306,
   },
 
-  // CORS settings
   cors: {
-    origin: "*", // Allow all origins for now
+    origin: "*",
   },
 };
 

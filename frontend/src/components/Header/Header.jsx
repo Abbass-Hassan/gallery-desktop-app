@@ -11,7 +11,6 @@ const Header = ({ user }) => {
     navigate("/");
   };
 
-  // Make sure we always display a name, even if user data is not fully loaded
   const displayName = user?.name || localStorage.getItem("userName") || "Guest";
 
   return (

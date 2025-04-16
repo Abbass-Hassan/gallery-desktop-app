@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState } from "react";
 import Cropper from "react-easy-crop";
 import "./EditPhotoModal.css";
 
-// Helper: Creates an Image object from a URL.
+// Creates an Image object from a URL
 const createImage = (url) =>
   new Promise((resolve, reject) => {
     const image = new Image();
@@ -11,7 +11,7 @@ const createImage = (url) =>
     image.onerror = (error) => reject(error);
   });
 
-// Helper: Returns a cropped image data URL from the image source and crop area.
+// Generates cropped image from source and crop area
 async function getCroppedImg(imageSrc, pixelCrop) {
   const image = await createImage(imageSrc);
   const canvas = document.createElement("canvas");
@@ -32,12 +32,12 @@ async function getCroppedImg(imageSrc, pixelCrop) {
   return canvas.toDataURL("image/jpeg");
 }
 
-// Helper: Rotates an image data URL by a given angle (in degrees) and returns the new data URL.
+// Rotates image by specified angle
 async function rotateImage(dataUrl, angle) {
   const img = await createImage(dataUrl);
   const radians = (angle * Math.PI) / 180;
   let newWidth, newHeight;
-  // Swap dimensions if angle is 90° or 270°.
+
   if (angle % 180 !== 0) {
     newWidth = img.height;
     newHeight = img.width;
@@ -45,6 +45,7 @@ async function rotateImage(dataUrl, angle) {
     newWidth = img.width;
     newHeight = img.height;
   }
+
   const offscreenCanvas = document.createElement("canvas");
   offscreenCanvas.width = newWidth;
   offscreenCanvas.height = newHeight;
@@ -63,9 +64,9 @@ const EditPhotoModal = ({ photo, onSave, onCancel }) => {
   const [watermarkText, setWatermarkText] = useState("");
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
-  const [rotation, setRotation] = useState(0); // Rotation angle in degrees
+  const [rotation, setRotation] = useState(0);
 
-  // Load the original image when the modal opens.
+  // Initialize canvas with original image
   useEffect(() => {
     const img = new Image();
     img.src = photo.url;
@@ -81,12 +82,12 @@ const EditPhotoModal = ({ photo, onSave, onCancel }) => {
     };
   }, [photo.url]);
 
-  // Capture crop area details.
+  // Store crop dimensions
   const onCropComplete = (croppedArea, croppedAreaPixels) => {
     setCroppedAreaPixels(croppedAreaPixels);
   };
 
-  // Apply cropping.
+  // Process and apply crop
   const applyCrop = async () => {
     try {
       const croppedImageDataUrl = await getCroppedImg(
@@ -111,7 +112,7 @@ const EditPhotoModal = ({ photo, onSave, onCancel }) => {
     }
   };
 
-  // Rotate image by 90° increments.
+  // Rotate image 90 degrees
   const handleRotate = async () => {
     try {
       const newRotation = (rotation + 90) % 360;
@@ -133,7 +134,7 @@ const EditPhotoModal = ({ photo, onSave, onCancel }) => {
     }
   };
 
-  // Convert the image to Black & White.
+  // Apply grayscale filter
   const handleBW = async () => {
     try {
       const canvas = canvasRef.current;
@@ -159,7 +160,7 @@ const EditPhotoModal = ({ photo, onSave, onCancel }) => {
     }
   };
 
-  // Apply watermark to the current image.
+  // Add text watermark to image
   const applyWatermark = () => {
     if (!watermarkText) {
       alert("Please enter some text for the watermark.");
@@ -168,13 +169,11 @@ const EditPhotoModal = ({ photo, onSave, onCancel }) => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
     ctx.save();
-    // Increase font size and use bold text for a more prominent watermark.
     ctx.font = "80px sans-serif";
     ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
     ctx.textBaseline = "bottom";
     ctx.textAlign = "right";
     const padding = 20;
-    // Draw watermark text at bottom-right.
     ctx.fillText(
       watermarkText,
       canvas.width - padding,
@@ -197,9 +196,7 @@ const EditPhotoModal = ({ photo, onSave, onCancel }) => {
           </button>
         </div>
         <div className="edit-image-container">
-          {/* Always render the canvas */}
           <canvas ref={canvasRef} className="edit-canvas" />
-          {/* Overlay Cropper if in cropping mode */}
           {isCropping && currentImage && (
             <div className="cropper-container">
               <Cropper
@@ -207,13 +204,11 @@ const EditPhotoModal = ({ photo, onSave, onCancel }) => {
                 crop={crop}
                 onCropChange={setCrop}
                 onCropComplete={onCropComplete}
-                // Free-form cropping: no aspect ratio, no zoom.
               />
             </div>
           )}
         </div>
         <div className="edit-controls">
-          {/* Crop controls */}
           {!isCropping ? (
             <button
               className="control-button"
@@ -226,15 +221,12 @@ const EditPhotoModal = ({ photo, onSave, onCancel }) => {
               Apply Crop
             </button>
           )}
-          {/* Rotate */}
           <button className="control-button" onClick={handleRotate}>
             Rotate
           </button>
-          {/* Black & White */}
           <button className="control-button" onClick={handleBW}>
             B&W
           </button>
-          {/* Watermark */}
           {!isWatermarking ? (
             <button
               className="control-button"

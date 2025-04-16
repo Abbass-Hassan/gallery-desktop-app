@@ -1,47 +1,45 @@
-// Import required modules
 const express = require("express");
 const http = require("http");
 const config = require("./config");
 const { initDatabase } = require("./database");
 const { setupSocketHandlers } = require("./socket-handler");
 
-// Create Express app and HTTP server
+// Setup application infrastructure
 const app = express();
 const server = http.createServer(app);
 
-// Initialize database
+// Connect to database
 initDatabase();
 
-// Set up Socket.io
+// Configure WebSocket communication
 setupSocketHandlers(server);
 
-// Basic route for testing
+// Base endpoint for service verification
 app.get("/", (req, res) => {
   res.send("Chat server is running");
 });
 
-// Health check route
+// Monitoring endpoint
 app.get("/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
-// Start the server
+// Launch server
 const PORT = config.port;
 server.listen(PORT, "0.0.0.0", () => {
   console.log(`Chat server running on port ${PORT}`);
 });
 
-// Handle server errors
+// Error handling for various failure scenarios
 server.on("error", (error) => {
   console.error("Server error:", error);
 });
 
-// Handle unhandled exceptions
+// Global error handlers
 process.on("uncaughtException", (error) => {
   console.error("Uncaught exception:", error);
 });
 
-// Handle unhandled promise rejections
 process.on("unhandledRejection", (error) => {
   console.error("Unhandled rejection:", error);
 });

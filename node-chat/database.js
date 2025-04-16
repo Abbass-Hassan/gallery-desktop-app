@@ -1,8 +1,7 @@
-// Import MySQL
 const mysql = require("mysql2");
 const config = require("./config");
 
-// Create database connection pool
+// Configure connection pool for better performance
 const db = mysql.createPool({
   host: config.database.host,
   user: config.database.user,
@@ -11,19 +10,19 @@ const db = mysql.createPool({
   port: config.database.port,
 });
 
-// Initialize database tables
+// Setup database schema
 function initDatabase() {
-  // Create chat_messages table if it doesn't exist
+  // Create messages table with appropriate fields
   db.query(
     `
-    CREATE TABLE IF NOT EXISTS chat_messages (
-      id INT AUTO_INCREMENT PRIMARY KEY,
-      user_id INT NOT NULL,
-      username VARCHAR(255) NOT NULL,
-      message TEXT NOT NULL,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )
-  `,
+   CREATE TABLE IF NOT EXISTS chat_messages (
+     id INT AUTO_INCREMENT PRIMARY KEY,
+     user_id INT NOT NULL,
+     username VARCHAR(255) NOT NULL,
+     message TEXT NOT NULL,
+     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+   )
+ `,
     (err) => {
       if (err) {
         console.error("Error creating chat_messages table:", err);
@@ -34,7 +33,7 @@ function initDatabase() {
   );
 }
 
-// Get recent messages
+// Retrieve chat history
 function getRecentMessages(callback) {
   db.query(
     "SELECT * FROM chat_messages ORDER BY created_at DESC LIMIT 50",
@@ -44,13 +43,13 @@ function getRecentMessages(callback) {
         callback(err, null);
         return;
       }
-      // Return oldest messages first
+      // Chronological order for display
       callback(null, results.reverse());
     }
   );
 }
 
-// Create a new message
+// Store new message and return created record
 function createMessage(userId, username, message, callback) {
   db.query(
     "INSERT INTO chat_messages (user_id, username, message) VALUES (?, ?, ?)",
@@ -62,7 +61,7 @@ function createMessage(userId, username, message, callback) {
         return;
       }
 
-      // Get the inserted message
+      // Fetch complete message object with timestamp
       db.query(
         "SELECT * FROM chat_messages WHERE id = ?",
         [result.insertId],

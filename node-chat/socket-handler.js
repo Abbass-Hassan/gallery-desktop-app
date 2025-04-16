@@ -1,11 +1,9 @@
-// Import socket.io
 const { Server } = require("socket.io");
 const { getRecentMessages, createMessage } = require("./database");
 const config = require("./config");
 
-// Set up socket handlers
 function setupSocketHandlers(server) {
-  // Create a Socket.io server
+  // Initialize Socket.IO with CORS settings
   const io = new Server(server, {
     cors: {
       origin: config.cors.origin,
@@ -13,11 +11,10 @@ function setupSocketHandlers(server) {
     },
   });
 
-  // Handle socket connections
   io.on("connection", (socket) => {
     console.log("User connected:", socket.id);
 
-    // Send recent messages to the client
+    // Send chat history to new client
     getRecentMessages((err, messages) => {
       if (err) {
         socket.emit("error", { message: "Failed to load messages" });
@@ -26,9 +23,8 @@ function setupSocketHandlers(server) {
       socket.emit("initialMessages", messages);
     });
 
-    // Handle new messages from clients
+    // Handle new messages
     socket.on("sendMessage", (data) => {
-      // Validate message data
       if (!isValidMessage(data)) {
         socket.emit("error", { message: "Invalid message format" });
         return;
@@ -36,19 +32,17 @@ function setupSocketHandlers(server) {
 
       const { user_id, username, message } = data;
 
-      // Store message in database
+      // Save and broadcast message
       createMessage(user_id, username, message, (err, newMessage) => {
         if (err) {
           socket.emit("error", { message: "Failed to send message" });
           return;
         }
 
-        // Broadcast the message to all clients
         io.emit("newMessage", newMessage);
       });
     });
 
-    // Handle disconnections
     socket.on("disconnect", () => {
       console.log("User disconnected:", socket.id);
     });
@@ -57,18 +51,12 @@ function setupSocketHandlers(server) {
   return io;
 }
 
-// Helper function to validate message data
+// Validate message structure
 function isValidMessage(data) {
-  // Check if data exists
   if (!data) return false;
-
-  // Check required fields
   if (!data.user_id || !data.username || !data.message) return false;
-
-  // Check if message is empty
   if (typeof data.message !== "string" || data.message.trim() === "")
     return false;
-
   return true;
 }
 

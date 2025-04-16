@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import io from "socket.io-client";
 import "./ChatRoom.css";
 
-const SOCKET_SERVER_URL = "http://35.180.10.197:80"; // EC2 Server IP
+const SOCKET_SERVER_URL = "http://35.180.10.197:80";
 
 const ChatRoom = ({ user }) => {
   const [socket, setSocket] = useState(null);
@@ -10,21 +10,20 @@ const ChatRoom = ({ user }) => {
   const [input, setInput] = useState("");
   const messageEndRef = useRef(null);
 
-  // Initialize Socket Connection
+  // Socket connection setup
   useEffect(() => {
     const newSocket = io(SOCKET_SERVER_URL, {
-      path: "/socket.io", // Important for Docker / Server
+      path: "/socket.io",
       transports: ["websocket"],
       reconnectionAttempts: 3,
     });
 
     setSocket(newSocket);
 
-    // Cleanup on unmount
     return () => newSocket.close();
   }, []);
 
-  // Handle Socket Events
+  // Socket event listeners
   useEffect(() => {
     if (!socket) return;
 
@@ -51,12 +50,14 @@ const ChatRoom = ({ user }) => {
     });
   }, [socket]);
 
+  // Auto-scroll to latest messages
   const scrollToBottom = () => {
     if (messageEndRef.current) {
       messageEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   };
 
+  // Message sending handler
   const handleSendMessage = () => {
     if (!input.trim() || !socket || !user) return;
 

@@ -8,7 +8,6 @@ const PhotoItem = ({ photo, onDelete, onEdit }) => {
     setShowOptions(!showOptions);
   };
 
-  // Wrap delete in a confirmation.
   const confirmAndDelete = () => {
     if (window.confirm("Are you sure you want to delete this photo?")) {
       onDelete(photo);

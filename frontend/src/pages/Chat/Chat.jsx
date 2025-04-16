@@ -2,8 +2,7 @@ import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "../../components/Header/Header";
 import ChatRoom from "../../components/ChatRoom/ChatRoom";
-import "./Chat.css"; // New or updated CSS for overall page container
-
+import "./Chat.css";
 const Chat = ({ user }) => {
   const navigate = useNavigate();
 

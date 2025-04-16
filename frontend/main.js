@@ -4,9 +4,11 @@ import path from "path";
 import fs from "fs";
 import os from "os";
 
+// Set up path constants for the application
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Initialize the main application window
 function createWindow() {
   const mainWindow = new BrowserWindow({
     width: 1512,
@@ -15,12 +17,11 @@ function createWindow() {
       preload: path.join(__dirname, "preload.js"),
       nodeIntegration: false,
       contextIsolation: true,
-      webSecurity: false, // Not recommended for production
+      webSecurity: false,
     },
   });
 
-  console.log(process.env.NODE_ENV);
-
+  // Load appropriate frontend based on environment
   if (process.env.NODE_ENV === "development") {
     mainWindow.loadURL("http://localhost:5173");
   } else {
@@ -28,19 +29,19 @@ function createWindow() {
   }
 }
 
-// IPC handler for saving a file (receives file data and fileName)
+// Handle image saving from renderer process
 ipcMain.handle("save-file", async (event, { data, fileName }) => {
-  // Define the destination directory on the Desktop
+  // Define storage location on user's desktop
   const destinationDir = path.join(os.homedir(), "Desktop", "MyAppImages");
 
-  // Create the directory if it doesn't exist
+  // Create storage directory if needed
   if (!fs.existsSync(destinationDir)) {
     fs.mkdirSync(destinationDir);
   }
 
   const destinationPath = path.join(destinationDir, fileName);
 
-  // Convert the received data (which is a typed array) into a Node Buffer
+  // Convert array data to Buffer for file writing
   const bufferData = Buffer.from(data);
 
   return new Promise((resolve, reject) => {
@@ -49,32 +50,29 @@ ipcMain.handle("save-file", async (event, { data, fileName }) => {
         console.error("Error writing file:", err);
         reject(err);
       } else {
-        resolve(destinationPath); // Return the new file path to the renderer
+        resolve(destinationPath);
       }
     });
   });
 });
 
-// IPC handler to retrieve images from the Desktop folder
+// Retrieve saved images from storage directory
 ipcMain.handle("get-user-images", async () => {
-  // Define the folder on the Desktop where images are saved
   const destinationDir = path.join(os.homedir(), "Desktop", "MyAppImages");
 
-  // If the folder doesn't exist, return an empty array.
+  // Return empty array if directory doesn't exist yet
   if (!fs.existsSync(destinationDir)) {
     return [];
   }
 
-  // Read files in that directory
+  // Get all files and convert to absolute paths
   const fileNames = fs.readdirSync(destinationDir);
-
-  // Map each file name to its absolute path.
   const filePaths = fileNames.map((file) => path.join(destinationDir, file));
 
   return filePaths;
 });
 
-// New IPC handler to delete a file from disk.
+// Remove images from storage
 ipcMain.handle("delete-file", async (event, filePath) => {
   return new Promise((resolve, reject) => {
     fs.unlink(filePath, (err) => {
@@ -88,6 +86,7 @@ ipcMain.handle("delete-file", async (event, filePath) => {
   });
 });
 
+// Application lifecycle handlers
 app.whenReady().then(createWindow);
 
 app.on("window-all-closed", () => {
